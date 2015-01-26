@@ -4,15 +4,24 @@ require 'minitest/autorun'
 module Liquid
   class Strainer
     def invoke(method, *args)
-      raise "Filter missing: #{method}" unless invokable?(method)
-      super method, *args
-    end
+      if invokable?(method)
+        send(method, *args)
+      else
+        raise "Filter missing: #{method}" unless invokable?(method)
+      end
+    rescue ::ArgumentError => e
+      raise Liquid::ArgumentError.new(e.message)
+    end    
   end
 end
 
 describe Liquid::Template do
   it 'renders' do
     Liquid::Template.parse('{{ x }}').render('x' => 5).must_equal '5'
+  end
+  
+  it 'renders a filter' do
+    Liquid::Template.parse('{{ \'x\' | upcase }}').render!.must_equal 'X'
   end
 
   it 'raises syntax errors' do
