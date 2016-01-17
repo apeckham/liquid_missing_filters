@@ -17,7 +17,7 @@ end
 
 describe Liquid::Template do
   it 'renders' do
-    Liquid::Template.parse('{{ x }}').render('x' => 5).must_equal '5'
+    Liquid::Template.parse('{{ x }}').render!('x' => 5).must_equal '5'
   end
   
   it 'renders a filter' do
