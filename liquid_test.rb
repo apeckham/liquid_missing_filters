@@ -25,22 +25,28 @@ describe Liquid::Template do
   end
 
   it 'raises syntax errors' do
-    -> do
+    block = -> do
       Liquid::Template.parse('{% if %}')
-    end.must_raise Liquid::SyntaxError
+    end
+    error = block.must_raise Liquid::SyntaxError
+    error.message.must_equal "Liquid syntax error: Syntax Error in tag 'if' - Valid syntax: if [expression]"
   end
 
   it 'raises when a variable is missing' do
-    -> do
+    block = -> do
       hash = {}
       hash.default_proc = lambda { |_, key| raise "missing #{key}" }
       Liquid::Template.parse("{{ x }}").render!(hash)
-    end.must_raise RuntimeError
+    end
+    error = block.must_raise RuntimeError
+    error.message.must_equal "missing x"
   end
 
   it 'raises when a filter is missing' do
-    -> do
+    block = -> do
       Liquid::Template.parse("{{ 1 | x }}").render!
-    end.must_raise RuntimeError
+    end
+    error = block.must_raise RuntimeError
+    error.message.must_equal "Filter missing: x"
   end
 end
