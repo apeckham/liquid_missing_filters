@@ -34,6 +34,10 @@ module Liquid
 end
 
 describe Liquid::Template do
+  before do
+    Liquid::Template.file_system = Liquid::BlankFileSystem.new
+  end
+
   it 'renders' do
     Liquid::Template.parse('{{ x }}').render!('x' => 5).must_equal '5'
   end
@@ -54,6 +58,17 @@ describe Liquid::Template do
     block = -> { Liquid::Template.parse("{% include 'open-graph-tags' %}").render! }
     error = block.must_raise Liquid::FileSystemError
     error.message.must_equal "Liquid error: This liquid context does not allow includes."
+  end
+
+  it 'includes a file' do
+    class FakeFileSystem
+      def read_template_file(file)
+        "Content of #{file}"
+      end
+    end
+
+    Liquid::Template.file_system = FakeFileSystem.new
+    Liquid::Template.parse("{% include 'open-graph-tags' %}").render!
   end
 
   it 'raises on syntax errors' do
