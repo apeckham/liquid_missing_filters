@@ -15,13 +15,19 @@ module Liquid
   end
 end
 
+def hash_with_missing_key
+  {}.tap do |hash|
+    hash.default_proc = lambda { |_, key| raise "missing #{key}" }
+  end
+end
+
 describe Liquid::Template do
   it 'renders' do
     Liquid::Template.parse('{{ x }}').render!('x' => 5).must_equal '5'
   end
   
   it 'renders a filter' do
-    Liquid::Template.parse('{{ \'x\' | upcase }}').render!.must_equal 'X'
+    Liquid::Template.parse('{{ "x" | upcase }}').render!.must_equal 'X'
   end
 
   it 'raises syntax errors' do
@@ -33,19 +39,13 @@ describe Liquid::Template do
   end
 
   it 'raises when a variable is missing' do
-    block = -> do
-      hash = {}
-      hash.default_proc = lambda { |_, key| raise "missing #{key}" }
-      Liquid::Template.parse("{{ x }}").render!(hash)
-    end
+    block = -> { Liquid::Template.parse("{{ x }}").render!(hash_with_missing_key) }
     error = block.must_raise RuntimeError
     error.message.must_equal "missing x"
   end
 
   it 'raises when a filter is missing' do
-    block = -> do
-      Liquid::Template.parse("{{ 1 | x }}").render!
-    end
+    block = -> { Liquid::Template.parse("{{ 1 | x }}").render! }
     error = block.must_raise RuntimeError
     error.message.must_equal "Filter missing: x"
   end
