@@ -68,7 +68,7 @@ describe Liquid::Template do
     end
 
     Liquid::Template.file_system = FakeFileSystem.new
-    Liquid::Template.parse("{% include 'open-graph-tags' %}").render!
+    Liquid::Template.parse("{% include 'open-graph-tags' %}").render!.must_equal "Content of open-graph-tags"
   end
 
   it 'raises on syntax errors' do
