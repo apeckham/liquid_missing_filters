@@ -1,3 +1,7 @@
+# https://github.com/jekyll/jekyll/issues/3008
+# https://github.com/Shopify/liquid/issues/490
+# https://github.com/bluerail/liquid/commit/a7796ff431e5b3b7b8107251d59335a6a0154f99
+
 require 'liquid'
 require 'minitest/autorun'
 
@@ -18,7 +22,7 @@ end
 class HashWithMissingProc < Hash
   def initialize
     super
-    self.default_proc = lambda { |_, key| raise "Variable missing: #{key}" }
+    self.default_proc = lambda { |_, key| p [_, key]; raise "Variable missing: #{key}" }
   end
 end
 
