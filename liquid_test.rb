@@ -1,6 +1,5 @@
 # https://github.com/jekyll/jekyll/issues/3008
 # https://github.com/Shopify/liquid/issues/490
-# https://github.com/bluerail/liquid/commit/a7796ff431e5b3b7b8107251d59335a6a0154f99
 
 require 'liquid'
 require 'minitest/autorun'
@@ -19,10 +18,18 @@ module Liquid
   end
 end
 
-class HashWithMissingProc < Hash
-  def initialize
-    super
-    self.default_proc = lambda { |_, key| p [_, key]; raise "Variable missing: #{key}" }
+# https://github.com/bluerail/liquid/commit/a7796ff431e5b3b7b8107251d59335a6a0154f99
+module Liquid
+  class Context
+    def lookup_and_evaluate(obj, key)
+      if (value = obj[key]).is_a?(Proc) && obj.respond_to?(:[]=)
+        obj[key] = (value.arity == 0) ? value.call : value.call(self)
+      elsif !obj.has_key?(key)
+        raise RuntimeError, "The variable `#{key}' is not defined"
+      else
+        value
+      end
+    end
   end
 end
 
@@ -31,8 +38,16 @@ describe Liquid::Template do
     Liquid::Template.parse('{{ x }}').render!('x' => 5).must_equal '5'
   end
 
+  it 'renders' do
+    Liquid::Template.parse('{{ x.y }}').render!('x' => {'y' => 6}).must_equal '6'
+  end
+
   it 'renders a filter' do
     Liquid::Template.parse('{{ "x" | upcase }}').render!.must_equal 'X'
+  end
+
+  it 'renders a filter' do
+    Liquid::Template.parse('{{ "sales" | append: ".jpg" }}').render!.must_equal 'sales.jpg'
   end
 
   it 'raises syntax errors' do
@@ -44,9 +59,9 @@ describe Liquid::Template do
   end
 
   it 'raises when a variable is missing' do
-    block = -> { Liquid::Template.parse("{{ x }}").render!(HashWithMissingProc.new) }
+    block = -> { Liquid::Template.parse("{{ x }}").render!({}) }
     error = block.must_raise RuntimeError
-    error.message.must_equal "Variable missing: x"
+    error.message.must_equal "The variable `x' is not defined"
   end
 
   it 'raises when a filter is missing' do
