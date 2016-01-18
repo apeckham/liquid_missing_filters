@@ -11,13 +11,14 @@ module Liquid
       end
     rescue ::ArgumentError => e
       raise Liquid::ArgumentError.new(e.message)
-    end    
+    end
   end
 end
 
-def hash_with_missing_key
-  {}.tap do |hash|
-    hash.default_proc = lambda { |_, key| raise "missing #{key}" }
+class HashWithMissingProc < Hash
+  def initialize
+    super
+    self.default_proc = lambda { |_, key| raise "Variable missing: #{key}" }
   end
 end
 
@@ -25,7 +26,7 @@ describe Liquid::Template do
   it 'renders' do
     Liquid::Template.parse('{{ x }}').render!('x' => 5).must_equal '5'
   end
-  
+
   it 'renders a filter' do
     Liquid::Template.parse('{{ "x" | upcase }}').render!.must_equal 'X'
   end
@@ -39,9 +40,9 @@ describe Liquid::Template do
   end
 
   it 'raises when a variable is missing' do
-    block = -> { Liquid::Template.parse("{{ x }}").render!(hash_with_missing_key) }
+    block = -> { Liquid::Template.parse("{{ x }}").render!(HashWithMissingProc.new) }
     error = block.must_raise RuntimeError
-    error.message.must_equal "missing x"
+    error.message.must_equal "Variable missing: x"
   end
 
   it 'raises when a filter is missing' do
