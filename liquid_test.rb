@@ -50,10 +50,14 @@ describe Liquid::Template do
     Liquid::Template.parse('{{ "sales" | append: ".jpg" }}').render!.must_equal 'sales.jpg'
   end
 
-  it 'raises syntax errors' do
-    block = -> do
-      Liquid::Template.parse('{% if %}')
-    end
+  it 'includes a file' do
+    block = -> { Liquid::Template.parse("{% include 'open-graph-tags' %}").render! }
+    error = block.must_raise Liquid::FileSystemError
+    error.message.must_equal "Liquid error: This liquid context does not allow includes."
+  end
+
+  it 'raises on syntax errors' do
+    block = -> { Liquid::Template.parse('{% if %}') }
     error = block.must_raise Liquid::SyntaxError
     error.message.must_equal "Liquid syntax error: Syntax Error in tag 'if' - Valid syntax: if [expression]"
   end
