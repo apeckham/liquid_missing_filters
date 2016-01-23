@@ -4,6 +4,11 @@ Monkey patch the [Liquid gem](https://github.com/Shopify/liquid/) to keep a list
 
 liquid_ext_test.rb contains tests for some of Liquid's existing functionality, and two failing tests for the new functionality.
 
+# Notes:
+
+- Feel free to add new tests
+- Please make the patch as short as possible
+
 # To run tests:
 
 `ruby liquid_ext_test.rb`

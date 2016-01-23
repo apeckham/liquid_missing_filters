@@ -60,21 +60,22 @@ describe Liquid do
   end
 
   describe "new functionality" do
-    # Liquid::Template.missing_{variables,filters} can be renamed or moved to a different class, if that makes this easier
-
     it "saves a list of missing variables" do
-      Liquid::Template.parse(".. {{ x }} {{ x.y }} !!").render!({'x' => 5}).must_equal ".. 5  !!"
-      Liquid::Template.missing_variables.must_equal ["x.y"]
+      template = Liquid::Template.parse(".. {{ x }} {{ x.y }} !!")
+      template.render!({'x' => 5}).must_equal ".. 5  !!"
+      template.missing_variables.must_equal ["x.y"]
     end
 
     it "saves a list of missing filters" do
-      Liquid::Template.parse("{{ 'foobar' | upcase | camelcase }}").render!({}).must_equal "FOOBAR"
-      Liquid::Template.missing_filters.must_equal ["camelcase"]
+      template = Liquid::Template.parse("{{ 'foobar' | upcase | camelcase }}")
+      template.render!({}).must_equal "FOOBAR"
+      template.missing_filters.must_equal ["camelcase"]
     end
 
     it "saves a list of missing filters, again" do
-      Liquid::Template.parse("{{ 'barbaz' | snakecase | upcase | camelcase }}").render!({}).must_equal "BARBAZ"
-      Liquid::Template.missing_filters.must_equal ["snakecase", "camelcase"]
+      template = Liquid::Template.parse("{{ 'barbaz' | snakecase | upcase | camelcase }}")
+      template.render!({}).must_equal "BARBAZ"
+      template.missing_filters.must_equal ["snakecase", "camelcase"]
     end
   end
 end
