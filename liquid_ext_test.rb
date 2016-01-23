@@ -1,9 +1,6 @@
 require 'liquid'
 require 'minitest/autorun'
-
-module Liquid
-  # Monkey patches go here
-end
+require_relative './liquid_ext'
 
 describe Liquid do
   before { Liquid::Template.file_system = Liquid::BlankFileSystem.new }

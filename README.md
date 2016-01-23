@@ -1,4 +1,8 @@
-Related links:
+# Running:
+
+`ruby liquid_ext_test.rb`
+
+# Related links:
 
 * https://github.com/jekyll/jekyll/issues/3008
 * https://github.com/Shopify/liquid/issues/490
