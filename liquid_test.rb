@@ -11,13 +11,6 @@ end
 
 describe Liquid do
   describe "file system" do
-    class InMemoryFileSystem
-      def read_template_file(file)
-        raise Errno::ENOENT if file == "error"
-        "Contents of #{file}"
-      end
-    end
-
     after do
       Liquid::Template.file_system = Liquid::BlankFileSystem.new
     end
@@ -28,13 +21,23 @@ describe Liquid do
       error.message.must_equal "Liquid error: This liquid context does not allow includes."
     end
 
-    it 'includes from InMemoryFileSystem' do
-      Liquid::Template.file_system = InMemoryFileSystem.new
+    it 'includes a file' do
+      Liquid::Template.file_system = Class.new do
+        def self.read_template_file(file)
+          "Contents of #{file}"
+        end
+      end
+
       Liquid::Template.parse("{% include 'open-graph-tags' %}").render!.must_equal "Contents of open-graph-tags"
     end
 
-    it 'includes a missing file from InMemoryFileSystem' do
-      Liquid::Template.file_system = InMemoryFileSystem.new
+    it 'includes a missing file' do
+      Liquid::Template.file_system = Class.new do
+        def self.read_template_file(_)
+          raise Errno::ENOENT
+        end
+      end
+
       -> { Liquid::Template.parse("{% include 'error' %}").render! }.must_raise Errno::ENOENT
     end
   end
