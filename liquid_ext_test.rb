@@ -69,5 +69,10 @@ describe Liquid do
       Liquid::Template.parse("{{ 'foobar' | upcase | camelcase }}").render!({}).must_equal "FOOBAR"
       Liquid::Template.missing_filters.must_equal ["camelcase"]
     end
+
+    it "saves a list of missing filters, again" do
+      Liquid::Template.parse("{{ 'barbaz' | snakecase | upcase | camelcase }}").render!({}).must_equal "BARBAZ"
+      Liquid::Template.missing_filters.must_equal ["snakecase", "camelcase"]
+    end
   end
 end
