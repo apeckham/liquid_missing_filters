@@ -47,6 +47,16 @@ describe Liquid do
         Liquid::Template.parse("{% include 'my-file' %}").render!.must_equal "Contents of my-file"
       end
 
+      it "evaluates the included file" do
+        Liquid::Template.file_system = Class.new do
+          def self.read_template_file(file)
+            "{{ 'foobar' | upcase }}"
+          end
+        end
+
+        Liquid::Template.parse("{% include 'my-file' %}").render!.must_equal "FOOBAR"
+      end
+
       it "raises when a file is missing" do
         Liquid::Template.file_system = Class.new do
           def self.read_template_file(_)
@@ -60,25 +70,37 @@ describe Liquid do
   end
 
   describe "new functionality" do
-    it "saves a list of missing variables" do
+    it "saves a list of variables" do
       template = Liquid::Template.parse(".. {{ x }} {{ x.y }} !!")
       template.render!({'x' => 5}).must_equal ".. 5  !!"
       template.missing_variables.must_equal ["x.y"]
       template.used_variables.must_equal ["x", "x.y"]
     end
 
-    it "saves a list of missing filters" do
+    it "saves a list of filters" do
       template = Liquid::Template.parse("{{ 'foobar' | upcase | camelcase }}")
       template.render!({}).must_equal "FOOBAR"
       template.missing_filters.must_equal ["camelcase"]
       template.used_filters.must_equal ["upcase", "camelcase"]
     end
 
-    it "saves a list of missing filters, again" do
+    it "saves a list of filters - multiple missing filters" do
       template = Liquid::Template.parse("{{ 'barbaz' | snakecase | upcase | camelcase }}")
       template.render!({}).must_equal "BARBAZ"
       template.missing_filters.must_equal ["snakecase", "camelcase"]
       template.used_filters.must_equal ["snakecase", "upcase", "camelcase"]
+    end
+
+    it "saves a list of includes" do
+      Liquid::Template.file_system = Class.new do
+        def self.read_template_file(file)
+          "Contents of #{file}"
+        end
+      end
+
+      template = Liquid::Template.parse("{% include 'my-file' %}")
+      template.render!.must_equal "Contents of my-file"
+      template.included_files.must_equal ["my-file"]
     end
   end
 end
