@@ -1,4 +1,10 @@
-# Running:
+# Goal:
+
+Monkey patch the [Liquid gem](https://github.com/Shopify/liquid/) to keep a list of missing variables and missing filters.
+
+liquid_ext_test.rb contains tests for some of Liquid's existing functionality, and two failing tests for the new functionality.
+
+# To run tests:
 
 `ruby liquid_ext_test.rb`
 
