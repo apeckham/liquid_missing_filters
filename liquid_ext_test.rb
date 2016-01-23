@@ -64,18 +64,21 @@ describe Liquid do
       template = Liquid::Template.parse(".. {{ x }} {{ x.y }} !!")
       template.render!({'x' => 5}).must_equal ".. 5  !!"
       template.missing_variables.must_equal ["x.y"]
+      template.used_variables.must_equal ["x", "x.y"]
     end
 
     it "saves a list of missing filters" do
       template = Liquid::Template.parse("{{ 'foobar' | upcase | camelcase }}")
       template.render!({}).must_equal "FOOBAR"
       template.missing_filters.must_equal ["camelcase"]
+      template.used_filters.must_equal ["upcase", "camelcase"]
     end
 
     it "saves a list of missing filters, again" do
       template = Liquid::Template.parse("{{ 'barbaz' | snakecase | upcase | camelcase }}")
       template.render!({}).must_equal "BARBAZ"
       template.missing_filters.must_equal ["snakecase", "camelcase"]
+      template.used_filters.must_equal ["snakecase", "upcase", "camelcase"]
     end
   end
 end
