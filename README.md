@@ -7,6 +7,7 @@ liquid_ext_test.rb contains tests for some of Liquid's existing functionality, a
 # Notes:
 
 - Feel free to add new tests
+- Feel free to change the way that "missing filters" and "missing variables" are returned. For example, you could create a new method "render_missings" that returns [rendered_string, missing_variables, missing_filters]
 - Please make the patch as short as possible
 
 # To run tests:
