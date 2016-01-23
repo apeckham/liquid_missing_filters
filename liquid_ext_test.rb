@@ -60,6 +60,8 @@ describe Liquid do
   end
 
   describe "new functionality" do
+    # Liquid::Template.missing_{variables,filters} can be renamed or moved to a different class, if that makes this easier
+
     it "saves a list of missing variables" do
       Liquid::Template.parse(".. {{ x }} {{ x.y }} !!").render!({'x' => 5}).must_equal ".. 5  !!"
       Liquid::Template.missing_variables.must_equal ["x.y"]
