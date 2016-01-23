@@ -13,34 +13,6 @@ describe Liquid do
   before { Liquid::Template.file_system = Liquid::BlankFileSystem.new }
 
   describe "existing functionality" do
-    describe "file system" do
-      it "does not include from BlankFileSystem" do
-        block = -> { Liquid::Template.parse("{% include 'my-file' %}").render! }
-        error = block.must_raise Liquid::FileSystemError
-        error.message.must_equal "Liquid error: This liquid context does not allow includes."
-      end
-
-      it "includes a file" do
-        Liquid::Template.file_system = Class.new do
-          def self.read_template_file(file)
-            "Contents of #{file}"
-          end
-        end
-
-        Liquid::Template.parse("{% include 'my-file' %}").render!.must_equal "Contents of my-file"
-      end
-
-      it "includes a missing file" do
-        Liquid::Template.file_system = Class.new do
-          def self.read_template_file(_)
-            raise Errno::ENOENT
-          end
-        end
-
-        -> { Liquid::Template.parse("{% include 'error' %}").render! }.must_raise Errno::ENOENT
-      end
-    end
-
     describe "rendering" do
       it "renders x" do
         Liquid::Template.parse('hello {{ x }} world!').render!('x' => 5).must_equal 'hello 5 world!'
@@ -64,20 +36,37 @@ describe Liquid do
         error.message.must_equal "Liquid syntax error: Syntax Error in tag 'if' - Valid syntax: if [expression]"
       end
     end
+
+    describe "file system" do
+      it "does not include from BlankFileSystem" do
+        block = -> { Liquid::Template.parse("{% include 'my-file' %}").render! }
+        error = block.must_raise Liquid::FileSystemError
+        error.message.must_equal "Liquid error: This liquid context does not allow includes."
+      end
+
+      it "includes a file" do
+        Liquid::Template.file_system = Class.new do
+          def self.read_template_file(file)
+            "Contents of #{file}"
+          end
+        end
+
+        Liquid::Template.parse("{% include 'my-file' %}").render!.must_equal "Contents of my-file"
+      end
+
+      it "raises when a file is missing" do
+        Liquid::Template.file_system = Class.new do
+          def self.read_template_file(_)
+            raise Liquid::FileSystemError
+          end
+        end
+
+        -> { Liquid::Template.parse("{% include 'error' %}").render! }.must_raise Liquid::FileSystemError
+      end
+    end
   end
 
   describe "new functionality" do
-    it "saves a list of missing includes" do
-      Liquid::Template.file_system = Class.new do
-        def self.read_template_file(file)
-          raise Errno::ENOENT unless file == "existing"
-        end
-      end
-
-      Liquid::Template.parse("{% include 'missing' %} {% include 'existing' %}").render!
-      Liquid::Template.missing_includes.must_equal ["missing"]
-    end
-
     it "saves a list of missing variables" do
       Liquid::Template.parse(".. {{ x }} {{ x.y }} !!").render!({'x' => 5}).must_equal ".. 5  !!"
       Liquid::Template.missing_variables.must_equal ["x.y"]
@@ -86,6 +75,17 @@ describe Liquid do
     it "saves a list of missing filters" do
       Liquid::Template.parse("{{ 'foobar' | upcase | camelcase }}").render!({}).must_equal "FOOBAR"
       Liquid::Template.missing_filters.must_equal ["camelcase"]
+    end
+
+    it "saves a list of missing includes" do
+      Liquid::Template.file_system = Class.new do
+        def self.read_template_file(file)
+          raise Liquid::FileSystemError unless file == "existing"
+        end
+      end
+
+      Liquid::Template.parse("{% include 'missing' %} {% include 'existing' %}").render!
+      Liquid::Template.missing_includes.must_equal ["missing"]
     end
   end
 end
