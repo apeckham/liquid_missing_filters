@@ -76,16 +76,5 @@ describe Liquid do
       Liquid::Template.parse("{{ 'foobar' | upcase | camelcase }}").render!({}).must_equal "FOOBAR"
       Liquid::Template.missing_filters.must_equal ["camelcase"]
     end
-
-    it "saves a list of missing includes" do
-      Liquid::Template.file_system = Class.new do
-        def self.read_template_file(file)
-          raise Liquid::FileSystemError unless file == "existing"
-        end
-      end
-
-      Liquid::Template.parse("{% include 'missing' %} {% include 'existing' %}").render!
-      Liquid::Template.missing_includes.must_equal ["missing"]
-    end
   end
 end
