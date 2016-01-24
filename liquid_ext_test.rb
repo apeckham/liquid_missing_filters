@@ -75,6 +75,7 @@ describe Liquid do
       template.render!({'x' => 5}).must_equal ".. 5  !!"
       template.missing_variables.must_equal ["x.y"]
       template.used_variables.must_equal ["x", "x.y"]
+      template.included_files.must_equal []
     end
 
     it "saves a list of filters" do
@@ -82,6 +83,9 @@ describe Liquid do
       template.render!({}).must_equal "FOOBAR"
       template.missing_filters.must_equal ["camelcase"]
       template.used_filters.must_equal ["upcase", "camelcase"]
+      template.missing_variables.must_equal []
+      template.used_variables.must_equal []
+      template.included_files.must_equal []
     end
 
     it "saves a list of filters - multiple missing filters" do
@@ -89,6 +93,7 @@ describe Liquid do
       template.render!({}).must_equal "BARBAZ"
       template.missing_filters.must_equal ["snakecase", "camelcase"]
       template.used_filters.must_equal ["snakecase", "upcase", "camelcase"]
+      template.included_files.must_equal []
     end
 
     it "saves a list of includes" do
