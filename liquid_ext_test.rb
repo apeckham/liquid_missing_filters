@@ -78,7 +78,7 @@ describe Liquid do
       template.missing_filters.must_equal []
       template.missing_variables.must_equal ["x.y"]
       template.used_filters.must_equal []
-      template.used_variables.must_equal ["x", "x.y"]
+      template.used_variables.must_equal ["x"]
     end
 
     it "saves a list of filters" do
@@ -88,7 +88,7 @@ describe Liquid do
       template.included_files.must_equal []
       template.missing_filters.must_equal ["missingfilter"]
       template.missing_variables.must_equal []
-      template.used_filters.must_equal ["upcase", "missingfilter"]
+      template.used_filters.must_equal ["upcase"]
       template.used_variables.must_equal []
     end
 
@@ -99,7 +99,7 @@ describe Liquid do
       template.included_files.must_equal []
       template.missing_filters.must_equal ["missingfilter2", "missingfilter"]
       template.missing_variables.must_equal []
-      template.used_filters.must_equal ["missingfilter2", "upcase", "missingfilter"]
+      template.used_filters.must_equal ["upcase"]
       template.used_variables.must_equal []
     end
 
