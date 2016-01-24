@@ -82,24 +82,24 @@ describe Liquid do
     end
 
     it "saves a list of filters" do
-      template = Liquid::Template.parse("{{ 'foobar' | upcase | camelcase }}")
+      template = Liquid::Template.parse("{{ 'foobar' | upcase | missingfilter }}")
       template.render!({}).must_equal "FOOBAR"
 
       template.included_files.must_equal []
-      template.missing_filters.must_equal ["camelcase"]
+      template.missing_filters.must_equal ["missingfilter"]
       template.missing_variables.must_equal []
-      template.used_filters.must_equal ["upcase", "camelcase"]
+      template.used_filters.must_equal ["upcase", "missingfilter"]
       template.used_variables.must_equal []
     end
 
     it "saves a list of filters - multiple missing filters" do
-      template = Liquid::Template.parse("{{ 'barbaz' | snakecase | upcase | camelcase }}")
+      template = Liquid::Template.parse("{{ 'barbaz' | missingfilter2 | upcase | missingfilter }}")
       template.render!({}).must_equal "BARBAZ"
 
       template.included_files.must_equal []
-      template.missing_filters.must_equal ["snakecase", "camelcase"]
+      template.missing_filters.must_equal ["missingfilter2", "missingfilter"]
       template.missing_variables.must_equal []
-      template.used_filters.must_equal ["snakecase", "upcase", "camelcase"]
+      template.used_filters.must_equal ["missingfilter2", "upcase", "missingfilter"]
       template.used_variables.must_equal []
     end
 
