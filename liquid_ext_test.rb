@@ -73,27 +73,34 @@ describe Liquid do
     it "saves a list of variables" do
       template = Liquid::Template.parse(".. {{ x }} {{ x.y }} !!")
       template.render!({'x' => 5}).must_equal ".. 5  !!"
-      template.missing_variables.must_equal ["x.y"]
-      template.used_variables.must_equal ["x", "x.y"]
+
       template.included_files.must_equal []
+      template.missing_filters.must_equal []
+      template.missing_variables.must_equal ["x.y"]
+      template.used_filters.must_equal []
+      template.used_variables.must_equal ["x", "x.y"]
     end
 
     it "saves a list of filters" do
       template = Liquid::Template.parse("{{ 'foobar' | upcase | camelcase }}")
       template.render!({}).must_equal "FOOBAR"
-      template.missing_filters.must_equal ["camelcase"]
-      template.used_filters.must_equal ["upcase", "camelcase"]
-      template.missing_variables.must_equal []
-      template.used_variables.must_equal []
+
       template.included_files.must_equal []
+      template.missing_filters.must_equal ["camelcase"]
+      template.missing_variables.must_equal []
+      template.used_filters.must_equal ["upcase", "camelcase"]
+      template.used_variables.must_equal []
     end
 
     it "saves a list of filters - multiple missing filters" do
       template = Liquid::Template.parse("{{ 'barbaz' | snakecase | upcase | camelcase }}")
       template.render!({}).must_equal "BARBAZ"
-      template.missing_filters.must_equal ["snakecase", "camelcase"]
-      template.used_filters.must_equal ["snakecase", "upcase", "camelcase"]
+
       template.included_files.must_equal []
+      template.missing_filters.must_equal ["snakecase", "camelcase"]
+      template.missing_variables.must_equal []
+      template.used_filters.must_equal ["snakecase", "upcase", "camelcase"]
+      template.used_variables.must_equal []
     end
 
     it "saves a list of includes" do
@@ -105,7 +112,12 @@ describe Liquid do
 
       template = Liquid::Template.parse("{% include 'my-file' %}")
       template.render!.must_equal "Contents of my-file"
+
       template.included_files.must_equal ["my-file"]
+      template.missing_filters.must_equal []
+      template.missing_variables.must_equal []
+      template.used_filters.must_equal []
+      template.used_variables.must_equal []
     end
   end
 end
