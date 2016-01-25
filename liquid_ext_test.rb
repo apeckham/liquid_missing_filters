@@ -72,35 +72,38 @@ describe Liquid do
   describe "new functionality" do
     it "saves a list of variables" do
       template = Liquid::Template.parse(".. {{ x }} {{ x.y }} !!")
-      template.render!({'x' => 5}).must_equal ".. 5  !!"
+      result = template.render_with_info!({'x' => 5})
+      result[0].must_equal ".. 5  !!"
 
-      template.included_files.must_equal []
-      template.missing_filters.must_equal []
-      template.missing_variables.must_equal ["x.y"]
-      template.used_filters.must_equal []
-      template.used_variables.must_equal ["x"]
+      result[1][:included_files].must_equal []
+      result[1][:missing_filters].must_equal []
+      result[1][:missing_variables].must_equal ["x.y"]
+      result[1][:used_filters].must_equal []
+      result[1][:used_variables].must_equal ["x"]
     end
 
     it "saves a list of filters" do
       template = Liquid::Template.parse("{{ 'foobar' | upcase | missingfilter }}")
-      template.render!({}).must_equal "FOOBAR"
+      result = template.render_with_info!({})
+      result[0].must_equal "FOOBAR"
 
-      template.included_files.must_equal []
-      template.missing_filters.must_equal ["missingfilter"]
-      template.missing_variables.must_equal []
-      template.used_filters.must_equal ["upcase"]
-      template.used_variables.must_equal []
+      result[1][:included_files].must_equal []
+      result[1][:missing_filters].must_equal ["missingfilter"]
+      result[1][:missing_variables].must_equal []
+      result[1][:used_filters].must_equal ["upcase"]
+      result[1][:used_variables].must_equal []
     end
 
     it "saves a list of filters - multiple missing filters" do
       template = Liquid::Template.parse("{{ 'barbaz' | missingfilter2 | upcase | missingfilter }}")
-      template.render!({}).must_equal "BARBAZ"
+      result = template.render_with_info({})
+      result[0].must_equal "BARBAZ"
 
-      template.included_files.must_equal []
-      template.missing_filters.must_equal ["missingfilter2", "missingfilter"]
-      template.missing_variables.must_equal []
-      template.used_filters.must_equal ["upcase"]
-      template.used_variables.must_equal []
+      result[1][:included_files].must_equal []
+      result[1][:missing_filters].must_equal ["missingfilter2", "missingfilter"]
+      result[1][:missing_variables].must_equal []
+      result[1][:used_filters].must_equal ["upcase"]
+      result[1][:used_variables].must_equal []
     end
 
     it "saves a list of includes" do
@@ -111,13 +114,14 @@ describe Liquid do
       end
 
       template = Liquid::Template.parse("{% include 'my-file' %}")
-      template.render!.must_equal "Contents of my-file"
+      result = template.render_with_info
+      result[0].must_equal "Contents of my-file"
 
-      template.included_files.must_equal ["my-file"]
-      template.missing_filters.must_equal []
-      template.missing_variables.must_equal []
-      template.used_filters.must_equal []
-      template.used_variables.must_equal []
+      result[1][:included_files].must_equal ["my-file"]
+      result[1][:missing_filters].must_equal []
+      result[1][:missing_variables].must_equal []
+      result[1][:used_filters].must_equal []
+      result[1][:used_variables].must_equal []
     end
   end
 end
