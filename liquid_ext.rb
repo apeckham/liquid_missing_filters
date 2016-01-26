@@ -14,10 +14,8 @@ module Liquid
         raise ArgumentError, 'Expected Hash as first parameter'
       end
 
-      result = render(*[context, args])
-
       [
-        result,
+        render(*[context, args]),
         {
           included_files: _included_files,
           missing_filters: _missing_filters(context),
@@ -32,27 +30,16 @@ module Liquid
 
     def _all_variables
       @_all_variables ||= @root.nodelist.map do |node|
-        if node.is_a?(Liquid::Variable)
-          if node.name.is_a?(Liquid::VariableLookup)
-            variable_name = node.name.name
-            variable_name << ".#{node.name.lookups.join('.')}" if node.name.lookups.any?
-            variable_name
-          else
-            nil
-          end
-        else
-          nil
-        end
+        next unless node.is_a?(Liquid::Variable) && node.name.is_a?(Liquid::VariableLookup)
+        variable_name = node.name.name
+        variable_name << ".#{node.name.lookups.join('.')}" if node.name.lookups.any?
+        variable_name
       end.compact
     end
 
     def _all_filters
       @_all_filters ||= @root.nodelist.flat_map do |node|
-        if node.is_a?(Liquid::Variable)
-          node.filters.map { |filter| filter[0] }
-        else
-          nil
-        end
+        node.filters.map { |filter| filter[0] } if node.is_a?(Liquid::Variable)
       end.compact
     end
 
@@ -76,7 +63,7 @@ module Liquid
 
     def _included_files
       @included_files ||= @root.nodelist.map do |node|
-        node.is_a?(Liquid::Include) ? node.instance_variable_get(:@template_name_expr) : nil
+        node.instance_variable_get(:@template_name_expr) if node.is_a?(Liquid::Include)
       end.compact
     end
   end
