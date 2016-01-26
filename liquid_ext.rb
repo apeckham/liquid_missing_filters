@@ -5,15 +5,21 @@ module Liquid
     end
 
     def render_with_info(*args)
-      raise ArgumentError unless args.first.is_a? Hash
-      context = Context.new([args.shift, assigns], instance_assigns, registers, @rethrow_errors, @resource_limits)
+      raise ArgumentError if !args.empty? && !args.first.is_a?(Hash)
+
+      context = case args.first
+      when Hash
+        Context.new([args.shift, assigns], instance_assigns, registers, @rethrow_errors, @resource_limits)
+      when nil
+        Context.new(assigns, instance_assigns, registers, @rethrow_errors, @resource_limits)
+      end
 
       result = render(context, args.last)
 
       [
         result,
         {
-          included_files: [],
+          included_files: _included_files,
           missing_filters: _missing_filters(context),
           missing_variables: _missing_variables(context),
           used_filters: _used_filters(context),
@@ -66,6 +72,12 @@ module Liquid
 
     def _missing_filters(context)
       _all_filters - _used_filters(context)
+    end
+
+    def _included_files
+      @included_files ||= @root.nodelist.map do |node|
+        node.is_a?(Liquid::Include) ? node.instance_variable_get(:@template_name_expr) : nil
+      end.compact
     end
   end
 end
