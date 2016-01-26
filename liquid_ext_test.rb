@@ -78,6 +78,54 @@ describe Liquid do
       end
     end
 
+    describe "when document has deep structure" do
+      it "collects correct information" do
+        Liquid::Template.file_system = Class.new do
+          def self.read_template_file(file)
+            "Contents of #{file}"
+          end
+        end
+
+        template = <<-eos
+        <div>
+          <ul>
+            <li><a href="">{{ x }}</a></li>
+            <li><a href="">{{ a.b.c }}</a></li>
+            <li><a href="">{{ y.z }}</a></li>
+            <li><a href="">{{ t }}</a></li>
+          </ul>
+          <strong>{{ 'foobar' | upcase | missingfilter | somefilter }}</strong>
+          <div>
+            {% include 'sidebar' %}
+          </div>
+        </div>
+        eos
+        template = Liquid::Template.parse(template)
+        result = template.render_with_info!({'x' => 5, 'y' => { 'z' => 20 }})
+        expected = <<-eos
+        <div>
+          <ul>
+            <li><a href="">5</a></li>
+            <li><a href=""></a></li>
+            <li><a href="">20</a></li>
+            <li><a href=""></a></li>
+          </ul>
+          <strong>FOOBAR</strong>
+          <div>
+            Contents of sidebar
+          </div>
+        </div>
+        eos
+        result[0].must_equal expected
+
+        result[1][:included_files].must_equal ["sidebar"]
+        result[1][:missing_filters].must_equal ["missingfilter", "somefilter"]
+        result[1][:missing_variables].must_equal ["a.b.c", "y.z", "t"]
+        result[1][:used_filters].must_equal ["upcase"]
+        result[1][:used_variables].must_equal ["x"]
+      end
+    end
+
     it "saves a list of variables" do
       template = Liquid::Template.parse(".. {{ x }} {{ x.y }} !!")
       result = template.render_with_info!({'x' => 5})
