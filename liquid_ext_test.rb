@@ -1,3 +1,4 @@
+require 'byebug'
 require 'liquid'
 require 'minitest/autorun'
 require_relative './liquid_ext'
