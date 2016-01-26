@@ -1,13 +1,22 @@
+GIT
+  remote: https://github.com/apeckham/liquid
+  revision: 6d30226768987f3cfd0737512ed218ec8d29d165
+  specs:
+    liquid (4.0.0.rc1)
+
 GEM
   remote: https://rubygems.org/
   specs:
-    liquid (3.0.6)
+    byebug (8.2.1)
+    minitest (5.8.4)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  liquid
+  byebug
+  liquid!
+  minitest
 
 BUNDLED WITH
    1.11.2
