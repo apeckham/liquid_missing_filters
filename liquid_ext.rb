@@ -5,16 +5,16 @@ module Liquid
     end
 
     def render_with_info(*args)
-      raise ArgumentError if !args.empty? && !args.first.is_a?(Hash)
-
       context = case args.first
       when Hash
         Context.new([args.shift, assigns], instance_assigns, registers, @rethrow_errors, @resource_limits)
       when nil
         Context.new(assigns, instance_assigns, registers, @rethrow_errors, @resource_limits)
+      else
+        raise ArgumentError, 'Expected Hash as first parameter'
       end
 
-      result = render(context, args.last)
+      result = render(*[context, args])
 
       [
         result,

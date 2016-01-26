@@ -70,7 +70,14 @@ describe Liquid do
     end
   end
 
-  describe "new functionality" do
+  describe "#render_with_info" do
+    describe "when wrong parameters are provided" do
+      it "raises an exception" do
+        template = Liquid::Template.parse(".. {{ x }} {{ x.y }} !!")
+        -> { template.render_with_info!('Wrong param') }.must_raise Liquid::ArgumentError
+      end
+    end
+
     it "saves a list of variables" do
       template = Liquid::Template.parse(".. {{ x }} {{ x.y }} !!")
       result = template.render_with_info!({'x' => 5})
