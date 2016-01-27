@@ -98,10 +98,25 @@ describe Liquid do
           <div>
             {% include 'sidebar' %}
           </div>
+          <ul>
+          {% for item in items %}
+            {% if item.valid %}
+            <li>{{item.name}}</li>
+            {% endif %}
+          {% endfor %}
+          </ul>
         </div>
         eos
         template = Liquid::Template.parse(template)
-        result = template.render_with_info({'x' => 5, 'y' => { 'z' => 20 }})
+        result = template.render_with_info(
+          'x' => 5,
+          'y' => { 'z' => 20 },
+          'items' => [
+            { 'valid' => true, 'name' => 'Item1' },
+            { 'valid' => false, 'name' => 'Item2' },
+            { 'valid' => true, 'name' => 'Item3' }
+          ]
+        )
         expected = <<-eos
         <div>
           <ul>
@@ -114,9 +129,13 @@ describe Liquid do
           <div>
             Contents of sidebar
           </div>
+          <ul>
+            <li>Item1</li>
+            <li>Item3</li>
+          </ul>
         </div>
         eos
-        result[0].must_equal expected
+        result[0].gsub(/\n\s{2,}$/, "\n").squeeze("\n").must_equal expected
 
         result[1][:included_files].must_equal ["sidebar"]
         result[1][:missing_filters].must_equal ["missingfilter", "somefilter"]
