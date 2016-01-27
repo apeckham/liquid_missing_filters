@@ -74,7 +74,7 @@ describe Liquid do
     describe "when wrong parameters are provided" do
       it "raises an exception" do
         template = Liquid::Template.parse(".. {{ x }} {{ x.y }} !!")
-        -> { template.render_with_info!('Wrong param') }.must_raise Liquid::ArgumentError
+        -> { template.render_with_info('Wrong param') }.must_raise Liquid::ArgumentError
       end
     end
 
@@ -101,7 +101,7 @@ describe Liquid do
         </div>
         eos
         template = Liquid::Template.parse(template)
-        result = template.render_with_info!({'x' => 5, 'y' => { 'z' => 20 }})
+        result = template.render_with_info({'x' => 5, 'y' => { 'z' => 20 }})
         expected = <<-eos
         <div>
           <ul>
@@ -128,7 +128,7 @@ describe Liquid do
 
     it "saves a list of variables" do
       template = Liquid::Template.parse(".. {{ x }} {{ x.y }} !!")
-      result = template.render_with_info!({'x' => 5})
+      result = template.render_with_info({'x' => 5})
       result[0].must_equal ".. 5  !!"
 
       result[1][:included_files].must_equal []
@@ -140,7 +140,7 @@ describe Liquid do
 
     it "saves a list of filters" do
       template = Liquid::Template.parse("{{ 'foobar' | upcase | missingfilter }}")
-      result = template.render_with_info!({})
+      result = template.render_with_info({})
       result[0].must_equal "FOOBAR"
 
       result[1][:included_files].must_equal []

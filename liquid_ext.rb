@@ -1,9 +1,5 @@
 module Liquid
   class Template #:nodoc:
-    def render_with_info!(*args)
-      render_with_info(*args)
-    end
-
     # Renders a template and returns the result and a hash with additional info:
     # :included_files – a list of all fiels included in the template
     # :missing_filters – a list of filters that were not invoked
