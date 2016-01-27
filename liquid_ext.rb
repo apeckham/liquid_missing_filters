@@ -30,37 +30,58 @@ module Liquid
 
     private
 
-    def _all_variables
-      @_all_variables ||= @root.nodelist.map do |node|
-        next unless node.is_a?(Liquid::Variable) && node.name.is_a?(Liquid::VariableLookup)
-        variable_name = node.name.name
-        variable_name << ".#{node.name.lookups.join('.')}" if node.name.lookups.any?
-        variable_name
+    def _all_variables(context, root = nil)
+      root ||= @root
+
+      @_all_variables ||= root.nodelist.flat_map do |node|
+        if node.is_a?(Liquid::Include)
+          template = node.send(
+            :load_cached_partial,
+            node.instance_variable_get(:@template_name_expr),
+            context
+          )
+          _all_variables(context, template.root)
+        elsif node.is_a?(Liquid::Variable) && node.name.is_a?(Liquid::VariableLookup)
+          variable_name = node.name.name
+          variable_name << ".#{node.name.lookups.join('.')}" if node.name.lookups.any?
+          variable_name
+        end
       end.compact
     end
 
-    def _all_filters
-      @_all_filters ||= @root.nodelist.flat_map do |node|
-        node.filters.map { |filter| filter[0] } if node.is_a?(Liquid::Variable)
-      end.compact
+    def _all_filters(context, root = nil)
+      root ||= @root
+
+      @_all_filters ||= root.nodelist.flat_map do |node|
+        if node.is_a?(Liquid::Include)
+          template = node.send(
+            :load_cached_partial,
+            node.instance_variable_get(:@template_name_expr),
+            context
+          )
+          _all_filters(context, template.root)
+        elsif node.is_a?(Liquid::Variable)
+          node.filters.map { |filter| filter[0] }
+        end
+      end.compact.uniq
     end
 
     def _used_variables(context)
-      _all_variables - _missing_variables(context)
+      _all_variables(context) - _missing_variables(context)
     end
 
     def _missing_variables(context)
-      @_missing_variables ||= _all_variables - context.environments.flat_map(&:keys)
+      @_missing_variables ||= _all_variables(context) - context.environments.flat_map(&:keys)
     end
 
     def _used_filters(context)
-      @_used_filters ||= _all_filters.select do |filter|
+      @_used_filters ||= _all_filters(context).select do |filter|
         context.strainer.class.invokable? filter
       end
     end
 
     def _missing_filters(context)
-      _all_filters - _used_filters(context)
+      _all_filters(context) - _used_filters(context)
     end
 
     def _included_files
