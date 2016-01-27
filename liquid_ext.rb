@@ -19,7 +19,7 @@ module Liquid
       [
         render(*[context, args]),
         {
-          included_files: _included_files,
+          included_files: _included_files(context),
           missing_filters: _missing_filters(context),
           missing_variables: _missing_variables(context),
           used_filters: _used_filters(context),
@@ -84,10 +84,24 @@ module Liquid
       _all_filters(context) - _used_filters(context)
     end
 
-    def _included_files
-      @included_files ||= @root.nodelist.map do |node|
-        node.instance_variable_get(:@template_name_expr) if node.is_a?(Liquid::Include)
-      end.compact
+    def _included_files(context, root = nil)
+      root ||= @root
+      includes = []
+
+      root.nodelist.each do |node|
+        if node.is_a?(Liquid::Include)
+          includes << node.instance_variable_get(:@template_name_expr)
+
+          template = node.send(
+            :load_cached_partial,
+            includes.last,
+            context
+          )
+          includes << _included_files(context, template.root)
+        end
+      end
+
+      includes.flatten.compact
     end
   end
 end

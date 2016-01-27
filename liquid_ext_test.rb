@@ -146,22 +146,26 @@ describe Liquid do
     end
 
     describe "when template includes other templates" do
-      it "saves a list of variables and filters for those templates as well" do
+      it "saves info for those templates as well" do
         Liquid::Template.file_system = Class.new do
           def self.read_template_file(file)
-            "{{ x }} {{ x.y }} {{ 'FOOBAR' | downcase | somefilter1 | somefilter2 }}"
+            if file == "partial1"
+              "{% include 'partial2' %} {{ x }} {{ x.y }} {{ 'FOOBAR' | downcase | somefilter1 | somefilter2 }}"
+            elsif file == "partial2"
+              "{{ a }} {{ b }}"
+            end
           end
         end
 
         template = Liquid::Template.parse(
-          "{% include 'partial' %} {{ z }} {{ z.y }} {{ 'barbaz' | upcase | somefilter3 | somefilter4 }}"
+          "{% include 'partial1' %} {{ z }} {{ z.y }} {{ 'barbaz' | upcase | somefilter3 | somefilter4 }}"
         )
-        result = template.render_with_info({'z' => 5, 'x' => 12})
-        result[0].must_equal "12  foobar 5  BARBAZ"
+        result = template.render_with_info({'z' => 5, 'x' => 12, 'a' => 3})
+        result[0].must_equal "3  12  foobar 5  BARBAZ"
 
-        result[1][:included_files].must_equal ["partial"]
-        result[1][:used_variables].must_equal ["x", "z"]
-        result[1][:missing_variables].must_equal ["x.y", "z.y"]
+        result[1][:included_files].must_equal ["partial1", "partial2"]
+        result[1][:used_variables].must_equal ["a", "x", "z"]
+        result[1][:missing_variables].must_equal ["b", "x.y", "z.y"]
         result[1][:missing_filters].must_equal ["somefilter1", "somefilter2", "somefilter3", "somefilter4"]
         result[1][:used_filters].must_equal ["downcase", "upcase"]
       end
